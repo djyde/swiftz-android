@@ -1,0 +1,15 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:key="network_server"
+        android:inputType="text"
+        android:title="@string/pref_title_server"
+        android:summary="@string/pref_summary_notset" />
+
+    <ListPreference
+        android:key="network_entry"
+        android:dependency="network_server"
+        android:title="@string/pref_title_entry"
+        android:summary="@string/pref_summary_notset" />
+
+</PreferenceScreen>

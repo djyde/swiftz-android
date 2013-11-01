@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar"></style>
+
+    <style name="SwiftoidTheme" parent="AppTheme">
+        <item name="android:actionBarStyle">@style/SwiftoidActionBar</item>
+    </style>
+
+    <style name="SwiftoidActionBar" parent="android:Widget.Holo.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">#9DC03D</item>
+    </style>
+
+</resources>

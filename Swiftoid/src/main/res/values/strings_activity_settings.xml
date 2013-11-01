@@ -1,0 +1,10 @@
+<resources>
+    <string name="title_activity_settings">Settings</string>
+
+    <string name="pref_header_network">Network</string>
+    <string name="pref_title_server">Authorization server</string>
+    <string name="pref_title_entry">Access point</string>
+
+    <string name="progress_fetching">Fetching server configurations...</string>
+
+</resources>
