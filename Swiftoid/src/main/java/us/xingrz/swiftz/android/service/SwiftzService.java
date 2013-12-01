@@ -6,13 +6,13 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import com.amnoon.crypto.Hdefcbag;
+import com.amnoon.proto.Field;
 import com.amnoon.proto.Packet;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.UnknownHostException;
 
 public class SwiftzService extends Service {
@@ -30,6 +30,8 @@ public class SwiftzService extends Service {
         return mBinder;
     }
 
+    private final static int START_INDEX = 0x01000000;
+
     private OnLoginListener onLoginListener = null;
     private OnLogoutListener onLogoutListener = null;
     private OnBreathedListener onBreathedListener = null;
@@ -37,6 +39,11 @@ public class SwiftzService extends Service {
     private OnSetupCompletedListener onSetupCompletedListener = null;
 
     private String session = null;
+
+    private InetAddress server = null;
+    private String entry = null;
+
+    private int index = START_INDEX;
 
     public void setup(OnSetupCompletedListener onSetupCompletedListener) {
         this.onSetupCompletedListener = onSetupCompletedListener;
@@ -69,7 +76,7 @@ public class SwiftzService extends Service {
     }
 
     public interface OnSetupCompletedListener {
-        public void onSetupCompleted(String server, String[] entries);
+        public void onSetupCompleted(InetAddress server, String[] entries);
     }
 
     public interface OnLoginListener {
@@ -96,30 +103,13 @@ public class SwiftzService extends Service {
         DisconnectedReason(char value) {}
     }
 
-    private class ServerListener extends Thread {
+    private class ResponseListener extends Thread {
         private boolean running = true;
-        private InetAddress address;
-
-        ServerSocket(InetAddress address) {
-            this.address = address;
-        }
-
-        ServerSocket(String address) throws UnknownHostException {
-            this.address = InetAddress.getByName(address);
-        }
-
-        ServerSocket(byte[] address) throws UnknownHostException {
-            this.address = InetAddress.getByAddress(address);
-        }
-
-        public void finish() {
-            running = false;
-        }
 
         @Override
         public void run() {
             try {
-                DatagramSocket listener = new DatagramSocket(3848, address);
+                DatagramSocket listener = new DatagramSocket(3848);
                 while (running) {
                     DatagramPacket answer = new DatagramPacket(new byte[255], 255);
                     listener.receive(answer);
@@ -128,18 +118,45 @@ public class SwiftzService extends Service {
 
                     switch (packet.getAction()) {
                         case SERVER_RESULT:
-                            
+                            server = InetAddress.getByAddress(packet.getBytes(Field.SERVER, null));
                             break;
                         case ENTRIES_RESULT:
+                            if (onSetupCompletedListener != null) {
+                                String[] entries = packet.getStringList(Field.ENTRY, null);
+                                onSetupCompletedListener.onSetupCompleted(server, entries);
+                                onSetupCompletedListener = null;
+                            }
                             break;
                         case LOGIN_RESULT:
                             if (onLoginListener != null) {
+                                boolean success = packet.getBoolean(Field.SUCCESS, false);
+                                String message = packet.getString(Field.MESSAGE, null);
+                                String website = packet.getString(Field.WEBSITE, null);
 
+                                session = packet.getString(Field.SESSION, null);
+
+                                onLoginListener.onLogin(success, message, website, session);
+                                onLoginListener = null;
                             }
                             break;
                         case BREATHE_RESULT:
+                            int breathedIndex = packet.getInteger(Field.INDEX, START_INDEX);
+
+                            if (packet.getBoolean(Field.SUCCESS, false)) {
+                                index = breathedIndex;
+                            }
+
+                            if (onBreathedListener != null) {
+                                onBreathedListener.onBreathed(session, index);
+                            }
                             break;
                         case LOGOUT_RESULT:
+                            if (packet.getBoolean(Field.SUCCESS, false)) {
+                                session = null;
+                                if (onLogoutListener != null) {
+                                    onLogoutListener.onLogout();
+                                }
+                            }
                             break;
                     }
                 }
@@ -149,4 +166,67 @@ public class SwiftzService extends Service {
         }
     }
 
+    private class ServerListener extends Thread {
+        private boolean running = true;
+
+        public void finish() {
+            running = false;
+        }
+
+        @Override
+        public void run() {
+            try {
+                DatagramSocket listener = new DatagramSocket(3848);
+                while (running) {
+                    DatagramPacket answer = new DatagramPacket(new byte[255], 255);
+                    listener.receive(answer);
+
+                    Packet packet = Packet.fromBytes(Hdefcbag.decrypt(answer.getData()));
+
+                    switch (packet.getAction()) {
+                        case ENTRIES_RESULT:
+                            if (onSetupCompletedListener != null) {
+                                String[] entries = packet.getStringList(Field.ENTRY, null);
+                                onSetupCompletedListener.onSetupCompleted(server, entries);
+                                onSetupCompletedListener = null;
+                            }
+                            break;
+                        case LOGIN_RESULT:
+                            if (onLoginListener != null) {
+                                boolean success = packet.getBoolean(Field.SUCCESS, false);
+                                String message = packet.getString(Field.MESSAGE, null);
+                                String website = packet.getString(Field.WEBSITE, null);
+
+                                session = packet.getString(Field.SESSION, null);
+
+                                onLoginListener.onLogin(success, message, website, session);
+                                onLoginListener = null;
+                            }
+                            break;
+                        case BREATHE_RESULT:
+                            int breathedIndex = packet.getInteger(Field.INDEX, START_INDEX);
+
+                            if (packet.getBoolean(Field.SUCCESS, false)) {
+                                index = breathedIndex;
+                            }
+
+                            if (onBreathedListener != null) {
+                                onBreathedListener.onBreathed(session, index);
+                            }
+                            break;
+                        case LOGOUT_RESULT:
+                            if (packet.getBoolean(Field.SUCCESS, false)) {
+                                session = null;
+                                if (onLogoutListener != null) {
+                                    onLogoutListener.onLogout();
+                                }
+                            }
+                            break;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
