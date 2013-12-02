@@ -1,8 +1,13 @@
 package com.amnoon.proto;
 
 public class Packet {
+
     public static Packet fromBytes(byte[] bytes) {
-        return new Packet();
+        return new Packet(Action.BREATHE);
+    }
+
+    public Packet(Action action) {
+
     }
 
     public Action getAction() {
@@ -51,5 +56,9 @@ public class Packet {
 
     public void putBytes(Field field, byte[] value) {
 
+    }
+
+    public byte[] getBytes() {
+        return null;
     }
 }

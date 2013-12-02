@@ -5,7 +5,11 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
+import com.amnoon.Socket;
+import com.amnoon.crypto.Crypto;
 import com.amnoon.crypto.Hdefcbag;
+import com.amnoon.crypto.ICrypto;
+import com.amnoon.proto.Action;
 import com.amnoon.proto.Field;
 import com.amnoon.proto.Packet;
 
@@ -13,6 +17,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 public class SwiftzService extends Service {
@@ -32,11 +37,8 @@ public class SwiftzService extends Service {
 
     private final static int START_INDEX = 0x01000000;
 
-    private OnLoginListener onLoginListener = null;
-    private OnLogoutListener onLogoutListener = null;
-    private OnBreathedListener onBreathedListener = null;
-    private OnDisconnectedListener onDisconnectedListener = null;
-    private OnSetupCompletedListener onSetupCompletedListener = null;
+    private OnBreathedListener onBreathedListener;
+    private OnDisconnectedListener onDisconnectedListener;
 
     private String session = null;
 
@@ -46,33 +48,113 @@ public class SwiftzService extends Service {
     private int index = START_INDEX;
 
     public void setup(OnSetupCompletedListener onSetupCompletedListener) {
-        this.onSetupCompletedListener = onSetupCompletedListener;
-
-        // ...
+        //server = InetAddress.getByAddress(packet.getBytes(Field.SERVER, null));
+        //String[] entries = packet.getStringList(Field.ENTRY, null);
+        //onSetupCompletedListener.onSetupCompleted(server, entries);
     }
 
-    public void login(String username, String password, String entry, OnLoginListener onLoginListener) {
-        this.onLoginListener = onLoginListener;
+    public void login(String username, String password, String entry, final OnLoginListener onLoginListener) {
+        if (session != null) {
+            return;
+        }
 
-        // ...
+        Packet packet = new Packet(Action.LOGIN);
+        packet.putBytes(Field.MAC, new byte[] { 0x00 });
+        packet.putString(Field.USERNAME, username);
+        packet.putString(Field.PASSWORD, password);
+        packet.putString(Field.IP, "");
+        packet.putString(Field.ENTRY, entry);
+        packet.putBoolean(Field.DHCP, true);
+        packet.putString(Field.VERSION, "3.7.8");
+
+        Socket.send(packet, 3848, server, 3848, new Hdefcbag(), new Socket.OnResponseListener() {
+            @Override
+            public void onResponse(Packet packet) {
+                if (packet != null && packet.getAction() == Action.LOGIN_RESULT) {
+                    session = packet.getString(Field.SESSION, null);
+
+                    startBreathing();
+
+                    if (onLoginListener != null) {
+                        boolean success = packet.getBoolean(Field.SUCCESS, false);
+                        String message = packet.getString(Field.MESSAGE, null);
+                        String website = packet.getString(Field.WEBSITE, null);
+                        onLoginListener.onLogin(success, message, website, session);
+                    }
+                }
+            }
+        });
     }
 
-    public void logout(OnLogoutListener onLogoutListener) {
-        this.onLogoutListener = onLogoutListener;
+    public void logout(final OnLogoutListener onLogoutListener) {
+        if (session == null) {
+            return;
+        }
 
-        // ...
+        stopBreathing();
+
+        Packet packet = new Packet(Action.LOGOUT);
+        packet.putString(Field.SESSION, session);
+        packet.putString(Field.IP, "");
+        packet.putBytes(Field.MAC, new byte[]{0x00});
+        packet.putInteger(Field.INDEX, index);
+        packet.putBytes(Field.BLOCK2A, new byte[4]);
+        packet.putBytes(Field.BLOCK2B, new byte[4]);
+        packet.putBytes(Field.BLOCK2C, new byte[4]);
+        packet.putBytes(Field.BLOCK2D, new byte[4]);
+        packet.putBytes(Field.BLOCK2E, new byte[4]);
+        packet.putBytes(Field.BLOCK2F, new byte[4]);
+
+        Socket.send(packet, 3848, server, 3848, new Hdefcbag(), new Socket.OnResponseListener() {
+            @Override
+            public void onResponse(Packet packet) {
+                if (packet != null && packet.getAction() == Action.LOGOUT_RESULT) {
+                    if (packet.getBoolean(Field.SUCCESS, false)) {
+                        session = null;
+                        if (onLogoutListener != null) {
+                            onLogoutListener.onLogout();
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public void setOnBreathedListener(OnBreathedListener onBreathedListener) {
         this.onBreathedListener = onBreathedListener;
     }
 
+    public void removeOnBreathedListener() {
+        this.onBreathedListener = null;
+    }
+
     public void setOnDisconnectedListener(OnDisconnectedListener onDisconnectedListener) {
         this.onDisconnectedListener = onDisconnectedListener;
     }
 
+    public void removeOnDisconnectedListener() {
+        this.onDisconnectedListener = null;
+    }
+
     public boolean isOnline() {
-        return this.session != null;
+        return (this.session != null);
+    }
+
+    private void startBreathing() {
+        /*int breathedIndex = packet.getInteger(Field.INDEX, START_INDEX);
+
+        if (packet.getBoolean(Field.SUCCESS, false)) {
+            index = breathedIndex + 3;
+        }
+
+        if (onBreathedListener != null) {
+            onBreathedListener.onBreathed(session, index);
+        }
+        break;*/
+    }
+
+    private void stopBreathing() {
+
     }
 
     public interface OnSetupCompletedListener {
@@ -96,137 +178,11 @@ public class SwiftzService extends Service {
     }
 
     public enum DisconnectedReason {
-        DEAD((char)0x00),
-        KILLED((char)0x01),
-        DRAINED((char)0x02);
+        DEAD((byte)0x00),
+        KILLED((byte)0x01),
+        DRAINED((byte)0x02);
 
-        DisconnectedReason(char value) {}
+        DisconnectedReason(byte value) {}
     }
 
-    private class ResponseListener extends Thread {
-        private boolean running = true;
-
-        @Override
-        public void run() {
-            try {
-                DatagramSocket listener = new DatagramSocket(3848);
-                while (running) {
-                    DatagramPacket answer = new DatagramPacket(new byte[255], 255);
-                    listener.receive(answer);
-
-                    Packet packet = Packet.fromBytes(Hdefcbag.decrypt(answer.getData()));
-
-                    switch (packet.getAction()) {
-                        case SERVER_RESULT:
-                            server = InetAddress.getByAddress(packet.getBytes(Field.SERVER, null));
-                            break;
-                        case ENTRIES_RESULT:
-                            if (onSetupCompletedListener != null) {
-                                String[] entries = packet.getStringList(Field.ENTRY, null);
-                                onSetupCompletedListener.onSetupCompleted(server, entries);
-                                onSetupCompletedListener = null;
-                            }
-                            break;
-                        case LOGIN_RESULT:
-                            if (onLoginListener != null) {
-                                boolean success = packet.getBoolean(Field.SUCCESS, false);
-                                String message = packet.getString(Field.MESSAGE, null);
-                                String website = packet.getString(Field.WEBSITE, null);
-
-                                session = packet.getString(Field.SESSION, null);
-
-                                onLoginListener.onLogin(success, message, website, session);
-                                onLoginListener = null;
-                            }
-                            break;
-                        case BREATHE_RESULT:
-                            int breathedIndex = packet.getInteger(Field.INDEX, START_INDEX);
-
-                            if (packet.getBoolean(Field.SUCCESS, false)) {
-                                index = breathedIndex;
-                            }
-
-                            if (onBreathedListener != null) {
-                                onBreathedListener.onBreathed(session, index);
-                            }
-                            break;
-                        case LOGOUT_RESULT:
-                            if (packet.getBoolean(Field.SUCCESS, false)) {
-                                session = null;
-                                if (onLogoutListener != null) {
-                                    onLogoutListener.onLogout();
-                                }
-                            }
-                            break;
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private class ServerListener extends Thread {
-        private boolean running = true;
-
-        public void finish() {
-            running = false;
-        }
-
-        @Override
-        public void run() {
-            try {
-                DatagramSocket listener = new DatagramSocket(3848);
-                while (running) {
-                    DatagramPacket answer = new DatagramPacket(new byte[255], 255);
-                    listener.receive(answer);
-
-                    Packet packet = Packet.fromBytes(Hdefcbag.decrypt(answer.getData()));
-
-                    switch (packet.getAction()) {
-                        case ENTRIES_RESULT:
-                            if (onSetupCompletedListener != null) {
-                                String[] entries = packet.getStringList(Field.ENTRY, null);
-                                onSetupCompletedListener.onSetupCompleted(server, entries);
-                                onSetupCompletedListener = null;
-                            }
-                            break;
-                        case LOGIN_RESULT:
-                            if (onLoginListener != null) {
-                                boolean success = packet.getBoolean(Field.SUCCESS, false);
-                                String message = packet.getString(Field.MESSAGE, null);
-                                String website = packet.getString(Field.WEBSITE, null);
-
-                                session = packet.getString(Field.SESSION, null);
-
-                                onLoginListener.onLogin(success, message, website, session);
-                                onLoginListener = null;
-                            }
-                            break;
-                        case BREATHE_RESULT:
-                            int breathedIndex = packet.getInteger(Field.INDEX, START_INDEX);
-
-                            if (packet.getBoolean(Field.SUCCESS, false)) {
-                                index = breathedIndex;
-                            }
-
-                            if (onBreathedListener != null) {
-                                onBreathedListener.onBreathed(session, index);
-                            }
-                            break;
-                        case LOGOUT_RESULT:
-                            if (packet.getBoolean(Field.SUCCESS, false)) {
-                                session = null;
-                                if (onLogoutListener != null) {
-                                    onLogoutListener.onLogout();
-                                }
-                            }
-                            break;
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }

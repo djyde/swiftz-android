@@ -4,9 +4,9 @@ package com.amnoon.crypto;
  * "crypto 3849"
  */
 
-public class Ecbhafdg {
+public class Ecbhafdg implements ICrypto {
 
-    public static byte[] encrypt(byte[] input) {
+    public byte[] encrypt(byte[] input) {
         byte[] output = new byte[input.length];
 
         for (int i = 0; i < input.length; i++) {
@@ -24,7 +24,7 @@ public class Ecbhafdg {
         return output;
     }
 
-    public static byte[] decrypt(byte[] input) {
+    public byte[] decrypt(byte[] input) {
         byte[] output = new byte[input.length];
 
         for (int i = 0; i < input.length; i++) {
