@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="background">#b4be32</color>
+
+    <style name="SwiftoidTheme" parent="android:Theme.Holo">
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:actionBarStyle">@style/SwiftoidTheme.ActionBar</item>
+        <item name="android:editTextStyle">@style/SwiftoidTheme.EditText</item>
+    </style>
+
+    <style name="SwiftoidTheme.ActionBar" parent="android:Widget.Holo.ActionBar.Solid">
+        <item name="android:background">@color/background</item>
+    </style>
+
+    <style name="SwiftoidTheme.EditText" parent="android:Widget.Holo.EditText">
+        <item name="android:textColorHint">#77ffffff</item>
+        <item name="android:background">@drawable/swiftoidtheme_edit_text_holo_dark</item>
+    </style>
+
+</resources>

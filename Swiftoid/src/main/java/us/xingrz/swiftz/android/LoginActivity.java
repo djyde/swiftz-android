@@ -19,6 +19,8 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.net.InetAddress;
+
 import us.xingrz.swiftz.android.service.SwiftzService;
 
 public class LoginActivity extends Activity {
@@ -48,12 +50,12 @@ public class LoginActivity extends Activity {
 
         setContentView(R.layout.activity_login);
 
-        progressDialog = ProgressDialog.show(this, null, getString(R.string.progress_initializing), true, true, new ProgressDialog.OnCancelListener() {
+        /*progressDialog = ProgressDialog.show(this, null, getString(R.string.progress_initializing), true, true, new ProgressDialog.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {
                 finish();
             }
-        });
+        });*/
 
         mUsernameText = (EditText) findViewById(R.id.username);
         mPasswordText = (EditText) findViewById(R.id.password);
@@ -70,13 +72,13 @@ public class LoginActivity extends Activity {
             }
         });
 
-        bindService(new Intent(this, SwiftzService.class), mConnection, Context.BIND_AUTO_CREATE);
+        //bindService(new Intent(this, SwiftzService.class), mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(this.mConnection);
+        //unbindService(this.mConnection);
     }
 
     @Override
@@ -117,7 +119,7 @@ public class LoginActivity extends Activity {
 
         this.mService.setup(new SwiftzService.OnSetupCompletedListener() {
             @Override
-            public void onSetupCompleted(String server, String[] entries) {
+            public void onSetupCompleted(InetAddress server, String[] entries) {
                 progressDialog.dismiss();
                 progressDialog = null;
                 online();
