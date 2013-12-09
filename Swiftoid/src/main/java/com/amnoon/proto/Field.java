@@ -79,4 +79,12 @@ public enum Field {
 
     Field(byte value) {}
 
+    public static Field fromByte(byte field) {
+        return null;
+    }
+
+    public byte value() {
+        return 0;
+    }
+
 }

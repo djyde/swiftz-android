@@ -30,4 +30,12 @@ public enum Action {
 
     Action(byte value) {}
 
+    public static Action fromByte(byte action) {
+        return null;
+    }
+
+    public byte value() {
+        return 0;
+    }
+
 }
