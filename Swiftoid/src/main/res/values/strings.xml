@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <resources>
 
     <string name="app_name">Swiftz</string>
@@ -9,8 +10,8 @@
 
     <string name="action_sign_in_short">Connect</string>
 
-    <string name="progress_initializing">Initializing&#8230;</string>
-    <string name="progress_connecting">Connecting&#8230;</string>
+    <string name="progress_initializing">Initializing…</string>
+    <string name="progress_connecting">Connecting…</string>
 
     <string name="error_field_required">This field is required</string>
     <string name="error_incorrect_account">User or password is incorrect</string>
@@ -23,6 +24,6 @@
     <string name="pref_title_server">Authorization server</string>
     <string name="pref_title_entry">Access point</string>
 
-    <string name="progress_fetching">Fetching server configurations...</string>
+    <string name="progress_fetching">Fetching server configurations…</string>
 
 </resources>

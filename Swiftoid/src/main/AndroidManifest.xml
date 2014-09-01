@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="us.xingrz.swiftz.android"
-    android:versionCode="1"
-    android:versionName="1.0" >
-
-    <uses-sdk
-        android:minSdkVersion="15"
-        android:targetSdkVersion="18" />
+    package="us.xingrz.swiftz.android">
 
     <application
         android:allowBackup="true"
@@ -17,7 +11,8 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/app_name"
-            android:windowSoftInputMode="adjustResize|stateVisible" >
+            android:logo="@drawable/ic_logo"
+            android:windowSoftInputMode="adjustResize|stateVisible">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -27,9 +22,7 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".LoginActivity"
-            android:theme="@android:style/Theme.Holo.Light">
-        </activity>
+            android:theme="@android:style/Theme.Holo.Light" />
 
         <service android:name=".service.SwiftzService" />
 

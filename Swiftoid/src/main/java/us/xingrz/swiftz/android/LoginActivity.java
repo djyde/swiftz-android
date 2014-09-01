@@ -25,37 +25,14 @@ import us.xingrz.swiftz.android.service.SwiftzService;
 
 public class LoginActivity extends Activity {
 
-    private ProgressDialog progressDialog;
-
     private EditText mUsernameText;
     private EditText mPasswordText;
-
-    private SwiftzService mService;
-
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            mService = ((SwiftzService.SwiftzBinder) iBinder).getService();
-            initialize();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_login);
-
-        /*progressDialog = ProgressDialog.show(this, null, getString(R.string.progress_initializing), true, true, new ProgressDialog.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialogInterface) {
-                finish();
-            }
-        });*/
 
         mUsernameText = (EditText) findViewById(R.id.username);
         mPasswordText = (EditText) findViewById(R.id.password);
@@ -71,14 +48,6 @@ public class LoginActivity extends Activity {
                 }
             }
         });
-
-        //bindService(new Intent(this, SwiftzService.class), mConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        //unbindService(this.mConnection);
     }
 
     @Override
@@ -91,17 +60,12 @@ public class LoginActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_login:
-                login();
-                break;
             case R.id.action_settings:
                 startSettings();
-                break;
+                return true;
             default:
-                break;
+                return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
     public void startSettings() {
@@ -109,29 +73,7 @@ public class LoginActivity extends Activity {
         startActivityForResult(intent, 0);
     }
 
-    private void initialize() {
-        if (mService.isOnline()) {
-            progressDialog.dismiss();
-            progressDialog = null;
-            online();
-            return;
-        }
-
-        this.mService.setup(new SwiftzService.OnSetupCompletedListener() {
-            @Override
-            public void onSetupCompleted(InetAddress server, String[] entries) {
-                progressDialog.dismiss();
-                progressDialog = null;
-                online();
-            }
-        });
-    }
-
     private void login() {
-        if (progressDialog != null) {
-            return;
-        }
-
         if (mUsernameText.getText() == null || mPasswordText.getText() == null) {
             return;
         }
@@ -153,26 +95,6 @@ public class LoginActivity extends Activity {
             mPasswordText.requestFocus();
             return;
         }
-
-        progressDialog = ProgressDialog.show(this, null, getString(R.string.progress_connecting), true, false);
-
-        mService.login(username, password, "internet", new SwiftzService.OnLoginListener() {
-            @Override
-            public void onLogin(boolean success, String message, String website, String session) {
-                progressDialog.dismiss();
-                progressDialog = null;
-                if (success) {
-                    online();
-                } else {
-                    new AlertDialog.Builder(LoginActivity.this)
-                            .setTitle(getString(R.string.alert_login_failed))
-                            .show();
-                }
-            }
-        });
     }
 
-    private void online() {
-
-    }
 }

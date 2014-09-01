@@ -1,27 +1,27 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:0.6.+'
-    }
-}
-apply plugin: 'android'
+apply plugin: 'com.android.application'
 
 repositories {
     mavenCentral()
 }
 
 android {
-    compileSdkVersion 18
-    buildToolsVersion "18.1.1"
+    compileSdkVersion 20
+    buildToolsVersion '20.0.0'
 
     defaultConfig {
+        applicationId "club.toyt.momoda"
         minSdkVersion 15
-        targetSdkVersion 18
+        targetSdkVersion 20
+        versionCode 10000
+        versionName "1.0.0"
+    }
+
+    packagingOptions {
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE.txt'
     }
 }
 
 dependencies {
-	compile 'com.android.support:support-v4:18.0.0'
+	compile 'com.android.support:support-v4:20.0.0'
 }

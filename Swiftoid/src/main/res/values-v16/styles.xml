@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <style name="SwiftoidTheme.EditText" parent="BaseTheme.EditText">
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+</resources>

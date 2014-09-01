@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <style name="BaseTheme" parent="android:Theme.Holo">
+        <item name="android:windowBackground">@color/color_primary</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:actionBarStyle">@style/SwiftoidTheme.ActionBar</item>
+        <item name="android:editTextStyle">@style/SwiftoidTheme.EditText</item>
+        <item name="android:buttonStyle">@style/SwiftoidTheme.FlatButton</item>
+    </style>
+
+    <style name="BaseTheme.EditText" parent="android:Widget.Holo.EditText">
+        <item name="android:textColorHint">#77ffffff</item>
+        <item name="android:background">@drawable/edit_text_dark</item>
+    </style>
+
+    <style name="SwiftoidTheme" parent="BaseTheme" />
+
+    <style name="SwiftoidTheme.ActionBar" parent="android:Widget.Holo.ActionBar.Solid">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="SwiftoidTheme.EditText" parent="BaseTheme.EditText" />
+
+    <style name="SwiftoidTheme.FlatButton" parent="android:Widget.Holo.Button.Borderless">
+        <item name="android:background">@drawable/flat_button_dark</item>
+    </style>
+
+</resources>

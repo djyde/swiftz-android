@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/edit_text_default_dark" android:state_enabled="true" android:state_focused="false" />
+    <item android:drawable="@drawable/edit_text_disabled_dark" android:state_enabled="false" android:state_focused="false" />
+    <item android:drawable="@drawable/edit_text_activated_dark" android:state_enabled="true" android:state_focused="true" />
+    <item android:drawable="@drawable/edit_text_activated_dark" android:state_activated="true" android:state_enabled="true" />
+    <item android:drawable="@drawable/edit_text_disabled_dark" />
+</selector>

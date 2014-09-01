@@ -155,22 +155,22 @@ public class Packet {
 
     public void putString(Field field, String value) {
         this.fields.add(field);
-        this.values.add(value);
+        //this.values.add(value);
     }
 
     public void putByte(Field field, byte value) {
         this.fields.add(field);
-        this.values.add(value);
+        //this.values.add(value);
     }
 
     public void putInteger(Field field, int value) {
         this.fields.add(field);
-        this.values.add(value);
+        //this.values.add(value);
     }
 
     public void putBoolean(Field field, boolean value) {
         this.fields.add(field);
-        this.values.add(value);
+        //this.values.add(value);
     }
 
     public void putBytes(Field field, byte[] value) {
