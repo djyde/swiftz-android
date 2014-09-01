@@ -1,4 +1,4 @@
-package com.amnoon.acl;
+package us.xingrz.swiftz.android.amnoon;
 
 import android.support.annotation.NonNull;
 

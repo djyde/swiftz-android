@@ -1,4 +1,4 @@
-package com.amnoon;
+package us.xingrz.swiftz.android.amnoon;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
